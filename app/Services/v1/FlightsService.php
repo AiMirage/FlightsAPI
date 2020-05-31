@@ -6,9 +6,28 @@ use App\Flight;
 
 class FlightsService
 {
-    public function getFlights()
+    protected $supportedInclude = [
+        'arrivalAirport' => 'arrival',
+        'departureAirport' => 'departure'
+    ];
+
+    public function getFlights($params)
     {
-        return $this->filterFlights(Flight::all());
+        if (empty($params)) {
+            return $this->filterFlights(Flight::all());
+        }
+
+        $keys = [];
+
+        if (isset($params['include'])) {
+            $includeParams = explode(',', $params['include']);
+            $includes = array_intersect($this->supportedInclude, $includeParams);
+            $keys = array_keys($includes);
+        }
+
+        // Eager loading to optimize the N+1 problem
+        return $this->filterFlights(Flight::with($keys)->get(), $keys);
+
     }
 
     public function getFlight($flightNumber)
@@ -16,7 +35,7 @@ class FlightsService
         return $this->filterFlights(Flight::where('flightNumber', $flightNumber)->get());
     }
 
-    protected function filterFlights($flights)
+    protected function filterFlights($flights, $keys = [])
     {
         $data = [];
 
@@ -26,6 +45,24 @@ class FlightsService
                 'status' => $flight->status,
                 'url' => route('flights.show', ['flight' => $flight->flightNumber])
             ];
+
+            if (in_array('arrivalAirport', $keys)) {
+                $entry['arrival'] = [
+                    'datetime' => $flight->arrivalDatetime,
+                    'iataCode' => $flight->arrivalAirport->iataCode,
+                    'city' => $flight->arrivalAirport->city,
+                    'state' => $flight->arrivalAirport->state
+                ];
+            }
+
+            if (in_array('departureAirport', $keys)) {
+                $entry['departure'] = [
+                    'datetime' => $flight->departureDatetime,
+                    'iataCode' => $flight->departureAirport->iataCode,
+                    'city' => $flight->departureAirport->city,
+                    'state' => $flight->departureAirport->state
+                ];
+            }
 
             $data[] = $entry;
         }
