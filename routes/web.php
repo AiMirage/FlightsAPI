@@ -13,6 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+//Route::get('api/flights', 'FlightController@index');
+
+Route::resource('flights','v1\FlightController');
