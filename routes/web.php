@@ -15,4 +15,4 @@ use Illuminate\Support\Facades\Route;
 
 //Route::get('api/flights', 'FlightController@index');
 
-Route::resource('flights','v1\FlightController');
+
