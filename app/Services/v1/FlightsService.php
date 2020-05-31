@@ -6,9 +6,19 @@ use App\Flight;
 
 class FlightsService
 {
-    protected $supportedInclude = [
+    protected $supportedIncludes = [
         'arrivalAirport' => 'arrival',
-        'departureAirport' => 'departure'
+        'departureAirport' => 'departure',
+        'status' => 'status'
+    ];
+
+    /**
+     * Supported query options
+     * @var array
+     */
+    protected $clauseProperties = [
+        'status',
+        'flightNumber'
     ];
 
     public function getFlights($params)
@@ -17,22 +27,14 @@ class FlightsService
             return $this->filterFlights(Flight::all());
         }
 
-        $keys = [];
+        $keys = $this->getKeys($params);
+        $queryKeys = $this->getQueryKeys($params);
 
-        if (isset($params['include'])) {
-            $includeParams = explode(',', $params['include']);
-            $includes = array_intersect($this->supportedInclude, $includeParams);
-            $keys = array_keys($includes);
-        }
+        // Eager loading to optimize the N+1 problem using the with method
+        $flights = Flight::with($keys)->where($queryKeys)->get();
 
-        // Eager loading to optimize the N+1 problem
-        return $this->filterFlights(Flight::with($keys)->get(), $keys);
+        return $this->filterFlights($flights, $keys);
 
-    }
-
-    public function getFlight($flightNumber)
-    {
-        return $this->filterFlights(Flight::where('flightNumber', $flightNumber)->get());
     }
 
     protected function filterFlights($flights, $keys = [])
@@ -68,5 +70,30 @@ class FlightsService
         }
 
         return $data;
+    }
+
+    protected function getKeys($params)
+    {
+        $keys = [];
+        if (isset($params['include'])) {
+            $includeParams = explode(',', $params['include']);
+            $includes = array_intersect($this->supportedIncludes, $includeParams);
+            $keys = array_keys($includes);
+        }
+
+        return $keys;
+    }
+
+    protected function getQueryKeys($params)
+    {
+        $queryKeys = [];
+
+        foreach ($this->clauseProperties as $prop) {
+            if (in_array($prop, array_keys($params))) {
+                $queryKeys[$prop] = $params[$prop];
+            }
+        }
+
+        return $queryKeys;
     }
 }
