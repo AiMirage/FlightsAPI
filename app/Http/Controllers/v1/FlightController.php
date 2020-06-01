@@ -73,7 +73,7 @@ class FlightController extends Controller
     {
         try {
             $flight = $this->flights->updateFlight($request, $id);
-            return response()->json($flight, 201);
+            return response()->json($flight, 200);
         } // Add another catch for 404 exception
         catch (ModelNotFoundException $e) {
             return response()->json(["message" => "404 | Not Found"], 404);
@@ -91,6 +91,14 @@ class FlightController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            $flight = $this->flights->deleteFlight($id);
+            return response()->make('', 204);
+        } // Add another catch for 404 exception
+        catch (ModelNotFoundException $e) {
+            return response()->json(["message" => "404 | Not Found"], 404);
+        } catch (\Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 500);
+        }
     }
 }

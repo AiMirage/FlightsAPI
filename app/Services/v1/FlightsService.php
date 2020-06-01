@@ -71,8 +71,7 @@ class FlightsService
             $codes[$airport->iataCode] = $airport->id;
         }
 
-        // Create the flight
-        $flight = new Flight();
+        // Update the flight data
         $flight->flightNumber = $request->input('flightNumber');
         $flight->status = $request->input('status');
         $flight->arrivalAirport_id = $codes[$arrivalAirport];
@@ -84,6 +83,12 @@ class FlightsService
 
         // Filter the output
         return $this->filterFlights([$flight]);
+    }
+
+    public function deleteFlight($flightNumber)
+    {
+        $flight = Flight::where('flightNumber', $flightNumber)->firstOrFail();
+        $flight->delete();
     }
 
     public function getFlights($params)
