@@ -53,6 +53,39 @@ class FlightsService
 
     }
 
+    public function updateFlight(Request $request, $flightNumber)
+    {
+        // Check if flight exist
+        $flight = Flight::where('flightNumber', $flightNumber)->firstOrFail(); // Will throw model not found exception and return 404 to client
+
+        /* Assume update all or nothing approach */
+        // First check for airport data
+        $arrivalAirport = $request->input('arrival.iataCode');
+        $departureAirport = $request->input('departure.iataCode');
+
+        $airports = Airport::whereIn('iataCode', [$arrivalAirport, $departureAirport])->get();
+
+        $codes = [];
+
+        foreach ($airports as $airport) {
+            $codes[$airport->iataCode] = $airport->id;
+        }
+
+        // Create the flight
+        $flight = new Flight();
+        $flight->flightNumber = $request->input('flightNumber');
+        $flight->status = $request->input('status');
+        $flight->arrivalAirport_id = $codes[$arrivalAirport];
+        $flight->arrivalDatetime = $request->input('arrival.datetime');
+        $flight->departureAirport_id = $codes[$departureAirport];
+        $flight->departureDatetime = $request->input('departure.datetime');
+
+        $flight->save();
+
+        // Filter the output
+        return $this->filterFlights([$flight]);
+    }
+
     public function getFlights($params)
     {
         if (empty($params)) {

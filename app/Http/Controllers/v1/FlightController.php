@@ -4,6 +4,7 @@ namespace App\Http\Controllers\v1;
 
 use App\Http\Controllers\Controller;
 use App\Services\v1\FlightsService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class FlightController extends Controller
@@ -42,7 +43,7 @@ class FlightController extends Controller
             $flight = $this->flights->createFlight($request);
             return response()->json($flight, 201);
         } catch (\Exception $e) {
-            return response()->json(["message" => $e->getTrace()], 500);
+            return response()->json(["message" => $e->getMessage()], 500);
         }
     }
 
@@ -70,7 +71,16 @@ class FlightController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            $flight = $this->flights->updateFlight($request, $id);
+            return response()->json($flight, 201);
+        } // Add another catch for 404 exception
+        catch (ModelNotFoundException $e) {
+            return response()->json(["message" => "404 | Not Found"], 404);
+//            throw $e;
+        } catch (\Exception $e) {
+            return response()->json(["message" => $e->getMessage()], 500);
+        }
     }
 
     /**
