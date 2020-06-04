@@ -2,6 +2,7 @@
 
 namespace App\Providers\v1;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use App\Services\v1\FlightsService;
 
@@ -15,7 +16,7 @@ class FlightsSerivceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(FlightsService::class, function ($app) {
-           return new FlightsService();
+            return new FlightsService();
         });
     }
 
@@ -26,6 +27,8 @@ class FlightsSerivceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Validator::extend('flight_status', function ($attribute, $value, $params, $validator) {
+            return $value == 'delayed' || $value == 'on-time';
+        });
     }
 }

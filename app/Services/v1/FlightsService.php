@@ -5,6 +5,7 @@ namespace App\Services\v1;
 use App\Flight;
 use App\Airport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class FlightsService
 {
@@ -22,6 +23,23 @@ class FlightsService
         'status',
         'flightNumber'
     ];
+
+    protected $validationRules = [
+        'flightNumber' => 'required',
+        'status' => 'required|flight_status',
+        'arrival.datetime' => 'required|date',
+        'arrival.iataCode' => 'required',
+        'departure.datetime' => 'required|date',
+        'departure.iataCode' => 'required',
+    ];
+
+    public function validate($flight)
+    {
+        $validator = Validator::make($flight, $this->validationRules);
+
+        // If fails will return status code 422 & props that failed
+        $validator->validate();
+    }
 
     public function createFlight(Request $request)
     {

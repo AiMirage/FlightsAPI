@@ -118,6 +118,8 @@ return [
     'url' => 'The :attribute format is invalid.',
     'uuid' => 'The :attribute must be a valid UUID.',
 
+    'flight_status' => 'The :attribute must be either delayed or on-time',
+
     /*
     |--------------------------------------------------------------------------
     | Custom Validation Language Lines
